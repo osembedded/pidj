@@ -1,0 +1,65 @@
+/* style.css - Part of the PiDj project.
+Copyright (C) 2012 Vijay Jayaraman (osembedded@gmail.com)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+@font-face {
+  	font-family: Junction;
+  	src: url("Junction-webfont.ttf");
+  }
+
+@font-face {
+  	font-family: Prociono;
+  	src: url("Prociono-Regular-webfont.ttf");
+  }
+
+@font-face {
+  	font-family: LindenHill;
+  	src: url("LindenHill-webfont.ttf");
+  }
+
+@font-face {
+  	font-family: LindenHill-Italic;
+  	src: url("LindenHill-Italic-webfont.ttf");
+  }
+
+body {
+	background: url(background.jpg) no-repeat center center fixed;
+	-webkit-background-size: cover;
+}
+
+#safezone{
+	width: 1400px;
+	height: 700px;
+	#border: dashed white thin;
+	margin: 0px auto;
+}
+
+#connectQr{
+	width:260px;
+	height:260px;
+	padding: 5px;
+	background: white;
+	text-align: center;
+}
+
+.heading {
+	color: #FFFFFF;
+	text-shadow: -1px -1px 1px #000000;
+	text-align: center;
+	font-size: xx-large;
+	font-family: LindenHill;
+	opacity: 0.6;
+}
