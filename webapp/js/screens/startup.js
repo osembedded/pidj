@@ -14,6 +14,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-$("#surface").append("<span style='color:white;font-size:large'>Yup... Just the beginning... Enjoy the blue space while it lasts... </span>");
-$("#surface").append("<div id='connectQr'></div>");
+$('#screen').remove();
+$("#surface").append("<div id='screen'></div>");
+$("<span style='color:white;font-size:large'>Test QR Code... </span>").appendTo("#screen");
+$("<div id='connectQr'></div>").appendTo("#screen");
+
+// Once the smartphone app connects to the rpi using the QR Code, this page will auto navigate to the server list page.
+// until then, use an onscreen button to proceed to the next screen.
+
+var nextScreen = function(){
+	// Load the script for the server list page.
+	$.getScript("js/screens/server_list.js", function(data, textStatus, jqxhr){
+		console.log("loading the server_list.js");
+	});
+};
+
+$("#screen").append("<button onClick='nextScreen()'>next</button>");
+
 console.log("startup.js loaded");
