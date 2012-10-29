@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 $('#screen').remove();
 $("#surface").append("<div id='screen'></div>");
-$("<span style='color:white;font-size:large'>Media Main Screen</span>").appendTo("#screen");
+$("<span style='color:white;font-size:large'>Media Main Screen: " + pidj.core.getSelectedServer() + "</span>").appendTo("#screen");
 
 // Once the user selects the server, we navigate to the page with all the media discovered.
 
@@ -37,5 +37,5 @@ var prevScreen = function(){
 $("#screen").append("<button onClick='prevScreen()'>Back to Server List</button>");
 $("#screen").append("<button onClick='nextScreen()'>next</button>");
 
-
+pidj.upnp.fakeBrowse();
 console.log("Media Main js loaded...");

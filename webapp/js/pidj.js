@@ -19,44 +19,38 @@ var pidj = {};
 pidj.core = (function(){
 	// Private members.
 	var version = 0.1;
-	var DMSList = new Array();
-	DMSList[0] = {name:"RedCurry",ip:"192.168.0.10"};
-	DMSList[1] = {name:"Peace",ip:"192.168.0.22"};
-
-	// Private methods.
-	function _discoverDMSs(){
-		// Discover content servers on the network.
-		return true;
-	}
+	var selectedServer;
 
 	return {
 	// Public members
+	getSelectedServer: function(){
+		return selectedServer;
+	},
+
+	setSelectedServer: function(server){
+		selectedServer = server;
+	},
 
 	// Public functions
 	init: function(){
 		console.log("Initializing pidj...");
-		return _discoverDMSs();
+
+		// Load the scripts pidj depends on.
+		$.getScript("js/upnp/upnp.js", function(data, textStatus, jqxhr){
+			console.log("upnp.js loaded.");
+			// Initialize upnp.
+			pidj.upnp.init();
+		});
 	},
 
 	getVersion: function(){
 		return version;
 	},
-
-	getDMSList: function(){
-		return DMSList;
-	},
-
 	}
 })();
 
-
 $(document).ready(function(){
 	pidj.core.init();
-
-	var servers = pidj.core.getDMSList();
-	for(var ii = 0; ii < servers.length; ii++){
-		console.log("Server " + ii + ": " + servers[ii].name + " - " + servers[ii].ip);
-	}
 
 	// Load the script for the Startup Page.
 	$.getScript("js/screens/startup.js", function(data, textStatus, jqxhr){
