@@ -65,7 +65,12 @@ pidj.upnp = (function(){
 	    // Public functions
 	    init: function(){
 	    	console.log("Initializing upnp...");
+	    	console.log("beforel...");
    			// Load the scripts pidj depends on.
+   			$.getScript("js/upnp/upnpObject.js", function(data, textStatus, jqxhr){
+   				console.log("upnpObject.js loaded.");
+   			});
+   			console.log("after...");
    			$.getScript("js/upnp/actions.js", function(data, textStatus, jqxhr){
    				console.log("actions.js loaded.");
    			});
@@ -86,3 +91,4 @@ pidj.upnp = (function(){
 		},
 	}
 })();
+

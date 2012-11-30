@@ -1,4 +1,4 @@
-/* actions.js - Part of the PiDj project.
+	/* actions.js - Part of the PiDj project.
 Copyright (C) 2012 Vijay Jayaraman (osembedded@gmail.com)
 
 This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,17 @@ pidj.upnp.fakeBrowse = function(){
 		type: "POST",
 		success: function (data, textStatus, xhr) {
 			console.log("Success doing ajax");
-			console.log(data);
+			//console.log(data);
+			var result = $(data).find("Result").text();
+			//console.log(result);
+			var didlXml = $.parseXML(result);
+			console.log(didlXml);
+			$(didlXml).find("class").each(function(){
+				var str = $(this).text();
+				console.log(str);
+				var obj = new upnpObject(str);
+				console.log("Created a new UPNP object of type: " + obj.getTypeStr());
+			});
 		},
 		error: function (xhr, textStatus, errorThrown) {
 			console.log("Error doing ajax");
