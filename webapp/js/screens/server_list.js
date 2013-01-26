@@ -48,6 +48,7 @@ $( "#selectable" ).selectable({
         $( ".ui-selected", this ).each(function() {
             var index = $( "#selectable li" ).index( this );
             pidj.core.setSelectedServer(servers[index].getServerName());
+            pidj.upnp.browseRootLevel();
             nextScreen();
         });
     }

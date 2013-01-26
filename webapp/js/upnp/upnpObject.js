@@ -1,53 +1,37 @@
-function upnpObject (classStr) {
+function upnpObject (ctxt) {
+	var classStr = ctxt.find('class').text();
 	if(classStr.indexOf("object.container") != -1){
-		this.type = upnpObject.types.container;
-		return new upnpObject.container();
+		return new upnpObject.container(ctxt);
 	}else if(classStr.indexOf("object.item") != -1){
-		this.type = upnpObject.types.item;
-		return new upnpObject.item();
+		return new upnpObject.item(ctxt);
 	}else{
-		this.type = upnpObject.types.invalid;
 		throw ("Error: Unknown classStr: " + classStr);
 	}
 };
 
-upnpObject.types = {
-	invalid: -1,
-	obj: 0,
-	container: 1,
-	item: 2,
+upnpObject.base = function(ctxt){
+//	var creator;
+//	var res;
+//	var _class;
+//	var restricted;
+//	var writeStatus;
+
+	this.id = +(ctxt.attr('id'));
+	this.parentID = ctxt.attr('parentID');
+	this.title = ctxt.find('title').text();
 };
 
-upnpObject.prototype.getTypeStr = function(){
-	switch(this.type){
-		case types.obj: return "Object";
-		case types.container: return "Container";
-		case types.item: return "Item";
-		default: return "Unknown";
-	}
-}
-
-upnpObject.base = function(){
-	var id;
-	var parentID;
-	var title;
-	var creator;
-	var res;
-	var _class;
-	var restricted;
-	var writeStatus;
+upnpObject.container = function(ctxt){
+	this.base = new upnpObject.base(ctxt);
+	this.rootNode = (this.base.id === 0)?true:false;
+	this.childCount = ctxt.attr('childCount');
+//	this.createClass;
+//	this.searchClass;
+//	this.searchable;
 };
 
-upnpObject.container = function(){
-	var base = new upnpObject.base();
-	var childCount;
-	var createClass;
-	var searchClass;
-	var searchable;
-};
-
-upnpObject.item = function(){
-	var base = new upnpObject.base();
-	var refId;
+upnpObject.item = function(ctxt){
+	this.base = new upnpObject.base(ctxt);
+//	var refId;
 };
 

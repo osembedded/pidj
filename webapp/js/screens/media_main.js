@@ -37,5 +37,4 @@ var prevScreen = function(){
 $("#screen").append("<button onClick='prevScreen()'>Back to Server List</button>");
 $("#screen").append("<button onClick='nextScreen()'>next</button>");
 
-pidj.upnp.fakeBrowse();
 console.log("Media Main js loaded...");
