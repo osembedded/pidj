@@ -24,7 +24,7 @@ function addSoapWrappers(str){
 	return head + str + tail;
 }
 
-pidj.upnp.browseRootChildren = function(){
+pidj.upnp.browseChildren = function(parent, childCount){
 	$.ajax({
 		url: "http://192.168.0.10:50001/ContentDirectory/control",
 		type: "POST",
@@ -54,17 +54,27 @@ pidj.upnp.browseRootChildren = function(){
 		headers: {'SOAPACTION': '"urn:schemas-upnp-org:service:ContentDirectory:1#Browse"',
 		'content-type': 'text/xml ;charset="utf-8"'},
 		data: addSoapWrappers('<ns0:Browse>\
-			<ObjectID>0</ObjectID>\
+			<ObjectID>' + parent.base.id +'</ObjectID>\
 			<BrowseFlag>BrowseDirectChildren</BrowseFlag>\
 			<Filter>*</Filter>\
 			<StartingIndex>0</StartingIndex>\
-			<RequestedCount>3</RequestedCount>\
+			<RequestedCount>' + childCount + '</RequestedCount>\
 			<SortCriteria></SortCriteria>\
 			</ns0:Browse>'),
 	});
 };
 
-pidj.upnp.browseRootLevel = function(){
+pidj.upnp.browseMetadata = function(parentContainer){
+	var objectId = 0;
+
+	if(null == parentContainer){
+		// We are browsing the metadata of the root level. i.e. container id 0.
+	}else if (typeof parentContainer === 'object'){
+		objectId = parentContainer.base.id;
+	}else{
+		console.log('Invalid parameter passed into browse Metadata.');
+	}
+
 	$.ajax({
 		url: "http://192.168.0.10:50001/ContentDirectory/control",
 		type: "POST",
@@ -87,7 +97,7 @@ pidj.upnp.browseRootLevel = function(){
 
 				console.log(obj);
 				// hack - do this cleanly.
-				pidj.upnp.browseRootChildren();
+				pidj.upnp.browseChildren(obj.childCount);
 			});
 		},
 		error: function (xhr, textStatus, errorThrown) {
@@ -96,7 +106,7 @@ pidj.upnp.browseRootLevel = function(){
 		headers: {'SOAPACTION': '"urn:schemas-upnp-org:service:ContentDirectory:1#Browse"',
 		'content-type': 'text/xml ;charset="utf-8"'},
 		data: addSoapWrappers('<ns0:Browse>\
-			<ObjectID>0</ObjectID>\
+			<ObjectID>' + objectId + '</ObjectID>\
 			<BrowseFlag>BrowseMetadata</BrowseFlag>\
 			<Filter>*</Filter>\
 			<StartingIndex>0</StartingIndex>\
