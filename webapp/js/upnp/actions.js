@@ -97,7 +97,7 @@ pidj.upnp.browseMetadata = function(parentContainer){
 
 				console.log(obj);
 				// hack - do this cleanly.
-				pidj.upnp.browseChildren(obj.childCount);
+				pidj.upnp.browseChildren(obj, obj.childCount);
 			});
 		},
 		error: function (xhr, textStatus, errorThrown) {
