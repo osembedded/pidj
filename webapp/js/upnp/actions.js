@@ -24,6 +24,33 @@ function addSoapWrappers(str){
 	return head + str + tail;
 }
 
+function ElemTree(){
+	var childList = new Array();
+	this.add = function(entry){
+		childList.push(entry);
+
+		browseThis = function(myIdx){
+			var myObj = childList[myIdx];
+			console.log("Browsing : " + myObj.base.title);
+			pidj.upnp.browseMetadata(myObj);
+		};
+
+		var idx = childList.length - 1;
+		console.log("current idx: " + idx);
+
+		$("#screen").append("<input type='button' " +
+			" id='" + idx + "' " +
+			" value='" + childList[idx].base.title + "' " +
+			" onClick='browseThis(" + idx + ")' >");
+		$("#" + idx).hover(function(){
+			console.log("Hovering on idx: " + idx );
+			console.log("String: " + childList[idx].toString());
+		});
+	};
+};
+
+var myTree = new ElemTree();
+
 pidj.upnp.browseChildren = function(parent, childCount){
 	$.ajax({
 		url: "http://192.168.0.10:50001/ContentDirectory/control",
@@ -46,6 +73,7 @@ pidj.upnp.browseChildren = function(parent, childCount){
 				}
 
 				console.log(obj);
+				myTree.add(obj);
 			});
 		},
 		error: function (xhr, textStatus, errorThrown) {
@@ -96,7 +124,8 @@ pidj.upnp.browseMetadata = function(parentContainer){
 				}
 
 				console.log(obj);
-				// hack - do this cleanly.
+				myTree.add(obj);
+
 				pidj.upnp.browseChildren(obj, obj.childCount);
 			});
 		},

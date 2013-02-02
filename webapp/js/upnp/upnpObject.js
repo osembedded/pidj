@@ -9,6 +9,10 @@ function upnpObject (ctxt) {
 	}
 };
 
+function addDbg(key, val){
+	return "<div id='dbgElem'>" + key +": "+ val + "</div>";
+}
+
 upnpObject.base = function(ctxt){
 //	var creator;
 //	var res;
@@ -16,15 +20,30 @@ upnpObject.base = function(ctxt){
 //	var restricted;
 //	var writeStatus;
 
-	this.id = +(ctxt.attr('id'));
+	this.id = ctxt.attr('id'); // Note id doesn't have to be a number.
 	this.parentID = ctxt.attr('parentID');
 	this.title = ctxt.find('title').text();
+	this.toString = function(){
+		var myStr = "";
+		myStr += addDbg("id", this.id);
+		myStr += addDbg("parentID", this.parentID);
+		myStr += addDbg("title", this.title);
+		return myStr;
+	}
 };
 
 upnpObject.container = function(ctxt){
 	this.base = new upnpObject.base(ctxt);
-	this.rootNode = (this.base.id === 0)?true:false;
+	this.rootNode = (this.base.parentID == "-1")?true:false;
 	this.childCount = ctxt.attr('childCount');
+	this.toString = function(){
+		var myStr = "";
+		myStr += addDbg("rootNode", this.rootNode);
+		myStr += addDbg("childCount", this.childCount);
+		myStr += this.base.toString();
+		return myStr;
+	}
+
 //	this.createClass;
 //	this.searchClass;
 //	this.searchable;
@@ -32,6 +51,12 @@ upnpObject.container = function(ctxt){
 
 upnpObject.item = function(ctxt){
 	this.base = new upnpObject.base(ctxt);
+	this.toString = function(){
+		var myStr = "";
+		myStr += this.base.toString();
+		return myStr;
+	}
+
 //	var refId;
 };
 
