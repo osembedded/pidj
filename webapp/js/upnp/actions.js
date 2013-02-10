@@ -24,34 +24,20 @@ function addSoapWrappers(str){
 	return head + str + tail;
 }
 
-function ElemTree(){
-	var childList = new Array();
-	this.add = function(entry){
-		childList.push(entry);
+function browseThis (upnpId){
+	var node = upnpCompositePattern.get(upnpId);
+	console.log("Browsing Node: " + node.toString());
 
-		browseThis = function(myIdx){
-			var myObj = childList[myIdx];
-			console.log("Browsing : " + myObj.base.title);
-			pidj.upnp.browseMetadata(myObj);
-		};
+	if(node instanceof upnpComposite){
+		pidj.upnp.browseChildren(node);
+	}else if(node instanceof upnpLeaf){
+		console.log("Cannot browse object of type upnpLeaf");
+	}else{
+		console.log("Unknown instance type.");
+	}
+}
 
-		var idx = childList.length - 1;
-		console.log("current idx: " + idx);
-
-		$("#screen").append("<input type='button' " +
-			" id='" + idx + "' " +
-			" value='" + childList[idx].base.title + "' " +
-			" onClick='browseThis(" + idx + ")' >");
-		$("#" + idx).hover(function(){
-			console.log("Hovering on idx: " + idx );
-			console.log("String: " + childList[idx].toString());
-		});
-	};
-};
-
-var myTree = new ElemTree();
-
-pidj.upnp.browseChildren = function(parent, childCount){
+pidj.upnp.browseChildren = function(node){
 	$.ajax({
 		url: "http://192.168.0.10:50001/ContentDirectory/control",
 		type: "POST",
@@ -59,21 +45,15 @@ pidj.upnp.browseChildren = function(parent, childCount){
 			console.log("Success doing ajax");
 			//console.log(data);
 			var result = $(data).find("Result").text();
-			//console.log(result);
 			var didlXml = $.parseXML(result);
 			console.log(didlXml);
 			$(didlXml).find("container").each(function(){
-				var obj = new upnpObject($(this));
-				if(obj instanceof upnpObject.container){
-					console.log("Created a new UPNP object of type: upnp container.");
-				}else if(obj instanceof upnpObject.item){
-					console.log("Created a new UPNP object of type: upnp item.");
-				}else{
-					console.log("Unknown upnp object type returned!!!!");
-				}
-
-				console.log(obj);
-				myTree.add(obj);
+				var myNode = upnpCompositePattern.add($(this));
+				pidj.upnp.browseMetadata(myNode);
+			});
+			$(didlXml).find("item").each(function(){
+				var myNode = upnpCompositePattern.add($(this));
+				pidj.upnp.browseMetadata(myNode);
 			});
 		},
 		error: function (xhr, textStatus, errorThrown) {
@@ -82,23 +62,23 @@ pidj.upnp.browseChildren = function(parent, childCount){
 		headers: {'SOAPACTION': '"urn:schemas-upnp-org:service:ContentDirectory:1#Browse"',
 		'content-type': 'text/xml ;charset="utf-8"'},
 		data: addSoapWrappers('<ns0:Browse>\
-			<ObjectID>' + parent.base.id +'</ObjectID>\
+			<ObjectID>' + node.getId() +'</ObjectID>\
 			<BrowseFlag>BrowseDirectChildren</BrowseFlag>\
 			<Filter>*</Filter>\
 			<StartingIndex>0</StartingIndex>\
-			<RequestedCount>' + childCount + '</RequestedCount>\
+			<RequestedCount>' + node.getChildCount() + '</RequestedCount>\
 			<SortCriteria></SortCriteria>\
 			</ns0:Browse>'),
 	});
 };
 
-pidj.upnp.browseMetadata = function(parentContainer){
+pidj.upnp.browseMetadata = function(node){
 	var objectId = 0;
 
-	if(null == parentContainer){
+	if(null == node){
 		// We are browsing the metadata of the root level. i.e. container id 0.
-	}else if (typeof parentContainer === 'object'){
-		objectId = parentContainer.base.id;
+	}else if (typeof node === 'object'){
+		objectId = node.getId();
 	}else{
 		console.log('Invalid parameter passed into browse Metadata.');
 	}
@@ -113,21 +93,25 @@ pidj.upnp.browseMetadata = function(parentContainer){
 			//console.log(result);
 			var didlXml = $.parseXML(result);
 			console.log(didlXml);
+
 			$(didlXml).find("container").each(function(){
-				var obj = new upnpObject($(this));
-				if(obj instanceof upnpObject.container){
-					console.log("Created a new UPNP object of type: upnp container.");
-				}else if(obj instanceof upnpObject.item){
-					console.log("Created a new UPNP object of type: upnp item.");
-				}else{
-					console.log("Unknown upnp object type returned!!!!");
-				}
+				var myNode = upnpCompositePattern.add($(this));
 
-				console.log(obj);
-				myTree.add(obj);
-
-				pidj.upnp.browseChildren(obj, obj.childCount);
+				// Add a button so that we can browse the children
+				$("#screen").append("<input type='button' " +
+					" id='" + myNode.getId() + "' " +
+					" value='" + myNode.getTitle() + "' " +
+					" onClick=browseThis('" + myNode.getId() + "') >");
 			});
+
+			$(didlXml).find("item").each(function(){
+				var myNode = upnpCompositePattern.add($(this));
+
+				// Add a button so that we can browse the children
+				$("#screen").append("<a href='" + myNode.getRes() + "' >" +
+					myNode.getTitle() + "</a>");
+			});
+
 		},
 		error: function (xhr, textStatus, errorThrown) {
 			console.log("Error doing ajax");

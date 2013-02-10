@@ -65,12 +65,20 @@ pidj.upnp = (function(){
 	    // Public functions
 	    init: function(){
 	    	console.log("Initializing upnp...");
-	    	console.log("beforel...");
+
    			// Load the scripts pidj depends on.
    			$.getScript("js/upnp/upnpObject.js", function(data, textStatus, jqxhr){
    				console.log("upnpObject.js loaded.");
    			});
-   			console.log("after...");
+
+   			$.getScript("js/upnp/upnpComposite.js")
+   			.done(function(data, textStatus, jqxhr){
+   				console.log("upnpComposite.js loaded.");
+   			})
+   			.fail(function(jqxhr, settings, ex){
+   				console.log("Error getting upnpcomposite.js script...: ex: " + ex);
+   			});
+
    			$.getScript("js/upnp/actions.js", function(data, textStatus, jqxhr){
    				console.log("actions.js loaded.");
    			});
