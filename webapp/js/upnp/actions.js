@@ -42,12 +42,14 @@ pidj.upnp.browseChildren = function(node){
 		url: "http://192.168.0.10:50001/ContentDirectory/control",
 		type: "POST",
 		success: function (data, textStatus, xhr) {
-			console.log("Success doing ajax");
+			//console.log("Success doing ajax");
 			//console.log(data);
 			var result = $(data).find("Result").text();
 			var didlXml = $.parseXML(result);
-			console.log(didlXml);
+			console.log("browseChildren -->");
+			console.log( didlXml);
 			$(didlXml).find("container").each(function(){
+				console.log("In browseChildren Success");
 				var myNode = upnpCompositePattern.add($(this));
 				pidj.upnp.browseMetadata(myNode);
 			});
@@ -87,14 +89,15 @@ pidj.upnp.browseMetadata = function(node){
 		url: "http://192.168.0.10:50001/ContentDirectory/control",
 		type: "POST",
 		success: function (data, textStatus, xhr) {
-			console.log("Success doing ajax");
 			//console.log(data);
 			var result = $(data).find("Result").text();
 			//console.log(result);
 			var didlXml = $.parseXML(result);
+			console.log("browseMetadata --> ");
 			console.log(didlXml);
 
 			$(didlXml).find("container").each(function(){
+				console.log("In browseMetadata Success");
 				var myNode = upnpCompositePattern.add($(this));
 
 				// Add a button so that we can browse the children
