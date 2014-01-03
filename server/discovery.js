@@ -47,7 +47,7 @@ var discovery = function(){
 		});
 
 		sock.on("listening", function(){
-			var address = mySock.address();
+		        var address = sock.address();
 			console.log("Server Listening " + address + ":" + address.port);
 		});
 	};
