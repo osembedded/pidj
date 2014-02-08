@@ -17,17 +17,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <!DOCTYPE html5>
 <html>
 <head>
-	<title>PiDj</title>
-	<script type="text/javascript" src="js/libs/jquery-ui-1.8.24/js/jquery-1.8.2.min.js"></script>
-	<script type="text/javascript" src="js/libs/jquery-ui-1.8.24/js/jquery-ui-1.8.24.custom.min.js"></script>
-	<script type="text/javascript" src="js/libs/jquery.qrcode.js"></script>
-	<script type="text/javascript" src="js/pidj.js"></script>
-	<link rel="stylesheet" type="text/css" href="themes/default/style.css"></link>
+<title>PiDj</title>
+<script type="text/javascript" src="js/libs/jquery-ui-1.8.24/js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript"
+src="js/libs/jquery-ui-1.8.24/js/jquery-ui-1.8.24.custom.min.js"></script>
+<script type="text/javascript" src="js/libs/lightbox/js/lightbox-2.6.min.js"></script>
+<script type="text/javascript" src="js/libs/jquery.qrcode.js"></script>
+<!-- TODO: Fix absolute url -->
+<script src="http://localhost:8181/socket.io/socket.io.js"></script>
+
+<script type="text/javascript" src="js/pidj.js"></script>
+<link rel="stylesheet" type="text/css" href="themes/default/style.css"></link>
+<link rel="stylesheet" type="text/css" href="js/libs/lightbox/css/lightbox.css"></link>
 </head>
 <body>
-	<div id="safezone">
-		<div id="surface">
-		</div>
-	</div>
+
+<!-- <audio controls loop> -->
+<!-- <source src="themes/default/thesong.mp3" type="audio/mp3"> -->
+<!-- Your browser does not support this audio format. -->
+<!-- </audio> -->
+<div id="safezone">
+<div id="surface">
+</div>
+</div>
 </body>
 </html>

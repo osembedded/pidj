@@ -64,6 +64,46 @@ body {
 	opacity: 0.6;
 }
 
+.folder {
+    background-image: url('./leopard-folder.png');
+    background-repeat: no-repeat;
+    width: 200px;
+    height: 200px;
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 300px;
+    text-align: center;
+    font-family: LindenHill;
+    font-size: xx-large;
+}
+
+.picture {
+    background-image: url('./photo.png');
+    background-repeat: no-repeat;
+    width: 200px;
+    height: 200px;
+    vertical-align: middle;
+    display: inline-block;
+    line-height: 300px;
+    text-align: center;
+    font-family: LindenHill;
+    font-size: medium;
+}
+
+.full { background-size: 100% 100%; }
+.cover { background-size: cover; }
+.contain { background-size: contain; }
+
+
+/* .folder { */
+/*     border: 0; */
+/*     background-size: contain; */
+/*     font-size: large; */
+/*     text-align: center; */
+/*     background: url('./leopard-folder.png') no-repeat ; */
+/*     font-family: LindenHill; */
+/* } */
+
 #selectable .ui-selecting { background: #FECA40; }
 #selectable .ui-selected { background: #F39814; color: white; }
 #selectable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
