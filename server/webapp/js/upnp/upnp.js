@@ -20,24 +20,11 @@ pidj.upnp = (function(){
 
     // Returns true on Success, false otherwise.
     function _discoverDevices(){
-	// TODO: Query the Browser Plug-in or using websockets to get this info.
-	// Also, this will happen asynchronously as we find devices.
-
-	//Device Discovery response header - See Upnp-arch-devicearchitecture-v1.0.pdf
-	//HTTP/1.1 200 OK 
-	//CACHE-CONTROL: max-age = seconds until advertisement expires 
-	//DATE: when response was generated 
-	//EXT: 
-	//LOCATION: URL for UPnP description for root device 
-	//SERVER: OS/version UPnP/1.0 product/version 
-	//ST: search target 
-	//USN: advertisement UUID
-	_insertDevice({server:"Synology NAS", location:"http://192.168.0.10:50001/desc/device.xml", validity:"1800", udn:"100"});
-	_insertDevice({server:"Ubuntu Laptop", location: "http://192.168.0.22:32469/DeviceDescription.xml", validity: "1800", udn:"200"});
     }
 
     // As we discover new devices, insert them into the device list.
     function _insertDevice(dev){
+	console.log("Inserting device...");
 	var inList = false;
 	// Create a new upnp device instance.
 	var upnpDev = new pidj.upnp.device(dev);
@@ -50,11 +37,10 @@ pidj.upnp = (function(){
 	}
 
 	if(!inList){
-	    console.log("Adding device: " + upnpDev.getServerName() + " " + upnpDev.getUrl());
+	    console.log("Adding device: " + upnpDev.getFriendlyName() + 
+			" " + upnpDev.getUrl());
 	    deviceList.push(upnpDev);
 	}
-	// Trigger an event saying device added
-	// TODO
     }
 
     function _getDeviceList(){
@@ -65,6 +51,12 @@ pidj.upnp = (function(){
 	// Public functions
 	init: function(){
 	    console.log("Initializing upnp...");
+
+	    var socket = io.connect("http://localhost:8181");
+	    socket.on('device_added', function(data){
+		console.log("Got device_added message...");
+		_insertDevice(data);
+	    });
 
    	    // Load the scripts pidj depends on.
    	    $.getScript("js/upnp/upnpComposite.js")
@@ -85,13 +77,14 @@ pidj.upnp = (function(){
 
 	    socket.on('device_added', function (data) {
 	        console.log(data);
-	        //socket.emit('my other event', { my: 'data' });
 	    });
 
 	},
 
 	// Call this to Discover devices on the network.
 	discoverDevices: function(){
+	    // TODO: Start the discovery process.
+
 	    return _discoverDevices();
 	},
 

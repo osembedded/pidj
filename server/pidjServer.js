@@ -4,10 +4,12 @@ var nodeStatic = require('node-static');
 var discovery = require('./discovery.js');
 
 // Start the discovery process for any content directory service out there.
-//discovery.start("ST: ssdp:all", 5);
-//discovery.start("ST: upnp:rootdevice", 5);
-//discovery.start("ST: urn:schemas-upnp-org:device:MediaServer", 5);
-discovery.start("ST: urn:schemas-upnp-org:service:ContentDirectory", 5);
+discovery.init()
+//    .start("ST: ssdp:all", 5)
+//    .start("ST: upnp:rootdevice", 5);
+//    .start("ST: urn:schemas-upnp-org:device:MediaServer", 5)
+    .start("ST: urn:schemas-upnp-org:service:ContentDirectory", 5)
+    .notify(8181);
 
 var fileServer = new nodeStatic.Server('.', { headers : {'Access-Control-Allow-Origin':'*'}});
 

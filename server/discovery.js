@@ -19,7 +19,6 @@
    The first time a client connects, a list of servers will be 
    broadcast. After that, only updates will be broadcast. */
    
-var http = require('http');
 var dgram = require('dgram');
 var io = require('socket.io');
 
@@ -28,20 +27,20 @@ var discoverySingleton = (function discovery(){
     ///////////////////////////////////
     // Private variables and methods //
     ///////////////////////////////////
-
     var discPort = 41235;  // Port to send udp messages
-    var notifyPort = 8181; // Default Port for notification
+    var notifyPort = 8282; // Default Port for notification
     var sock = null;
     var serverList = [];
     var searchTarget = 0;
     var searchTime = 0;
-    var searchPeriod = 5; // Search every 5 seconds
+    //var searchPeriod = 5; // Search every 5 seconds
     var message = new Buffer("");
 
     // Parses device's usn and location fields.
     function parseDiscoveryResp (msg){
 	var line = msg.split('\n');
 	var device = {};
+	//console.log("msg: " + msg);
  
 	for(var ii = 0; ii<line.length; ii++){
 	    var kvline = line[ii];
@@ -67,10 +66,19 @@ var discoverySingleton = (function discovery(){
 	return device;
     }
 
+    // Get Server's Friendly Name
+    function getServerFriendlyName(url){
+	request(url, function(error, response, body){
+	    parseString(body, function(err, result){
+		console.log(result.root.device[0].friendlyName[0]);
+	    });
+	});
+    }
+
     function addDevice (device){
 	if (false == serverListContains(device)){
 	    serverList.push(device);
-	    console.log("Added - " + device.usn + ": " + device.location);
+	    //console.log("Added - " + device.usn + ": " + device.location);
 	    return true;
 	}
 	else{
@@ -106,6 +114,27 @@ var discoverySingleton = (function discovery(){
 	return false;
     }
 
+   function emitDevice(socket, event, usn, location){
+	var dev = {
+	    'usn':usn,
+	    'location':location
+	};
+
+	console.log("Emiting : " + JSON.stringify(dev));
+	socket.emit(event, dev);
+    }
+
+    function emitDeviceList(socket){
+	if(socket && serverList){
+	    for(var ii in serverList){
+		emitDevice(socket,
+			   'device_added', 
+			   serverList[ii].usn, 
+			   serverList[ii].location);
+	    }
+	}
+    }
+
     //////////////////////////////////////
     // Privileged variables and methods //
     //////////////////////////////////////
@@ -114,8 +143,10 @@ var discoverySingleton = (function discovery(){
 	io = io.listen(notifyPort);
 
 	io.sockets.on('connection', function(socket){
-	    console.log("Emitting on connection");
-	    socket.emit(serverList);
+	    if(serverList){
+		//console.log("Emitting on connection");
+		emitDeviceList(socket);
+	    }
 	});
     }
 
@@ -133,10 +164,12 @@ var discoverySingleton = (function discovery(){
 
 	    if(dev){
 		if(addDevice(dev)){
-		    console.log("Added new device...");
-		    if(io){
-			console.log("Emitting...");
-			io.emit(serverList);
+		    if(io && serverList){
+			//console.log("Emitting on device addition");
+			emitDevice(io,
+				   'device_added', 
+				   dev.usn, 
+				   dev.location);
 		    }
 		}
 	    }

@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 // UPNP device class
 pidj.upnp.device = function(dev){
+    console.log("Got Dev: " + dev);
 	this.server = dev.server;
 	this.location = dev.location;
 	this.validity = dev.validity;

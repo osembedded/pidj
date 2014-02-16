@@ -34,13 +34,10 @@ var nextScreen = function(serverName){
 // Display the list of servers found...
 $("#screen").append("<ol id='selectable'><ol>");
 
-// Kick off the discovery process.
-// TODO: Figure out an optimal location to kick this.
-pidj.upnp.discoverDevices();
 var servers = pidj.upnp.getDeviceList("DMS");
 for(var ii = 0; ii < servers.length; ii++){
 	//console.log("Server " + ii + ": " + servers[ii].getServerName() + " - " + servers[ii].getUrl("root"));
-	$("#selectable").append("<li class='ui-widget-content'>" + servers[ii].getServerName() + "</li>");
+	$("#selectable").append("<li class='ui-widget-content'>" + servers[ii].getFriendlyName() + "</li>");
 }
 
 $( "#selectable" ).selectable({
@@ -53,7 +50,4 @@ $( "#selectable" ).selectable({
     }
 });
 
-/*$(function() {
-        $( "#selectable" ).selectable();
-    });*/
 console.log("Server List js loaded...");
