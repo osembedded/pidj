@@ -23,20 +23,25 @@ var http = require('http');
 var dgram = require('dgram');
 var io = require('socket.io');
 
-function discovery(){
+var discoverySingleton = (function discovery(){
 
     ///////////////////////////////////
     // Private variables and methods //
     ///////////////////////////////////
-    var discPort = 41235;
-    var notifyPort = 8181; // Default
-    this.sock = null;
+
+    var discPort = 41235;  // Port to send udp messages
+    var notifyPort = 8181; // Default Port for notification
+    var sock = null;
+    var serverList = [];
+    var searchTarget = 0;
+    var searchTime = 0;
+    var searchPeriod = 5; // Search every 5 seconds
+    var message = new Buffer("");
 
     // Parses device's usn and location fields.
     function parseDiscoveryResp (msg){
 	var line = msg.split('\n');
 	var device = {};
-	//console.log(msg);
  
 	for(var ii = 0; ii<line.length; ii++){
 	    var kvline = line[ii];
@@ -62,123 +67,9 @@ function discovery(){
 	return device;
     }
 
-    //////////////////////////////////////
-    // Privileged variables and methods //
-    //////////////////////////////////////
-    this.myServers = [];
-    this.searchTarget = 0;
-    this.searchTime = 0;
-    this.message = new Buffer("");
-
-    this.getSock = function(){
-	return this.sock;
-    }
-
-    this.getSearchTime = function(){
-	return this.searchTime;
-    }
-
-    this.init = function(notificationPort){
-	var that = this;
-
-	/* Set Notification port */
-	console.log("Setting Notification port to " + notificationPort);
-	notifyPort = notificationPort;
-
-	io = io.listen(notifyPort);
-
-	/* Create socket necessary for further operation. */
-	that.sock = dgram.createSocket("udp4");
-
-	/* Bind to port */
-	that.sock.bind(discPort);
-
-	/* Setup the handlers for the socket */
-	that.sock.on("message", function(msg, rinfo){
-	    var dev = parseDiscoveryResp(msg.toString());
-
-	    if(dev){
-		if(that.addDevice(dev)){
-		    //console.log("Added new device...");
-		   // io.emit('news', { hello: 'world' });
-		}
-	    }
-	});
-
-	that.sock.on("listening", function(){
-	    var address = that.getSock().address();
-	    console.log("Server Listening for UDP packets" + 
-			address + ":" + address.port);
-	});
-    }
-
-    this.setupDiscovery = function (searchTarget, searchTime){
-	var that = this;
-
-	that.searchTarget = searchTarget;
-	that.searchTime = searchTime;
-
-	/* Setup the message to send for a search */
-	that.message = new Buffer("M-SEARCH * HTTP/1.1\r\n" +
-				  "HOST: 239.255.255.250:1900\r\n" +
-				  "MAN: \"ssdp:discover\"\r\n" +
-				  "ST: " + that.searchTarget + "\r\n"+
-				  "MX: "+ that.searchTime + "\r\n" +
-				  "\r\n");
-    }
-
-    this.shutDownDiscovery = function(){
-	this.sock.close();
-	this.sock = null;
-    }
-
-    this.start = function(searchTarget, searchTime) {
-	/* Wait for the requested time before giving up. */
-	var that = this;
-
-	console.info("Starting upnp discovery...");
-
-	// Setup the socket first.
-	that.setupDiscovery(searchTarget, searchTime);
-
-	//console.log("that.message: " + that.message);
-
-	that.getSock().send(that.message, 0, that.message.length, 
-		  1900, "239.255.255.250");
-
-	setTimeout(function(){
-	    /* Stop the discovery */
-	    that.stop();
-
-	    /* Retry getting the devices a few times before we 
-	       decide which devices are present in the network. */
-	    if(--that.retries != 0){
-		that.start(that.searchTarget, that.searchTime);
-	    }else{
-		console.log("End of discovery. ");
-	    }
-	}, that.getSearchTime()*1000);
-    }
-    
-    this.stop = function(){
-	console.info("Stopping upnp discovery...");
-	this.shutDownDiscovery();
-    }
-
-    this.serverListContains = function (device)
-    {
-	var ii;
-	for(ii in this.myServers){
-	    if(this.myServers[ii] == device){
-		return true;
-	    }
-	}
-	return false;
-    }
-
-    this.addDevice = function(device){
-	if (false == this.serverListContains(device)){
-	    this.myServers.push(device);
+    function addDevice (device){
+	if (false == serverListContains(device)){
+	    serverList.push(device);
 	    console.log("Added - " + device.usn + ": " + device.location);
 	    return true;
 	}
@@ -187,16 +78,109 @@ function discovery(){
 	}
     }
 
-    this.removeDevice = function(device){
-	//TODO
+    function setupDiscovery (srchTarget, srchTime){
+	searchTarget = srchTarget;
+	searchTime = srchTime;
+
+	/* Setup the message to send for a search */
+	message = new Buffer("M-SEARCH * HTTP/1.1\r\n" +
+			     "HOST: 239.255.255.250:1900\r\n" +
+			     "MAN: \"ssdp:discover\"\r\n" +
+			     "ST: " + searchTarget + "\r\n"+
+			     "MX: "+ searchTime + "\r\n" +
+			     "\r\n");
+    }
+
+    function shutDownDiscovery(){
+	sock.close();
+	sock = null;
+    }
+
+    function serverListContains(device){
+	var ii;
+	for(ii in serverList){
+	    if(serverList[ii] == device){
+		return true;
+	    }
+	}
+	return false;
+    }
+
+    //////////////////////////////////////
+    // Privileged variables and methods //
+    //////////////////////////////////////
+    this.notify = function(notificationPort){
+	notifyPort = notificationPort;
+	io = io.listen(notifyPort);
+
+	io.sockets.on('connection', function(socket){
+	    console.log("Emitting on connection");
+	    socket.emit(serverList);
+	});
+    }
+
+    this.init = function(){
+
+	/* Create socket necessary for further operation. */
+	sock = dgram.createSocket("udp4");
+
+	/* Bind to port */
+	sock.bind(discPort);
+
+	/* Setup the handlers for the socket */
+	sock.on("message", function(msg, rinfo){
+	    var dev = parseDiscoveryResp(msg.toString());
+
+	    if(dev){
+		if(addDevice(dev)){
+		    console.log("Added new device...");
+		    if(io){
+			console.log("Emitting...");
+			io.emit(serverList);
+		    }
+		}
+	    }
+	});
+
+	sock.on("listening", function(){
+	    var address = sock.address();
+	    console.log("Server Listening for UDP packets" + 
+			address + ":" + address.port);
+	});
+	
+	return this;
+    }
+
+    this.start = function(searchTarget, searchTime) {
+
+	console.info("Starting upnp discovery...");
+
+	setupDiscovery(searchTarget, searchTime);
+
+	sock.send(message, 0, message.length, 
+		  1900, "239.255.255.250");
+
+	return this;
+    }
+    
+    this.stop = function(){
+	console.info("Stopping upnp discovery...");
+	shutDownDiscovery();
+	return this;
     }
 
     this.getDevices = function(){
-	console.log("getDevices called...");
-	return this.myServers;
+	return serverList;
     }    
-}
+
+    return {
+	init: this.init,
+	start: this.start,
+	stop: this.stop,
+	notify: this.notify,
+	getDevices: this.getDevices,
+    }
+})();
 
 // Export the discovery module instance.
-var discInst = new discovery();
-module.exports = discInst;
+module.exports = discoverySingleton;
