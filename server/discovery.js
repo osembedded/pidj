@@ -21,6 +21,8 @@
    
 var dgram = require('dgram');
 var io = require('socket.io');
+var request = require('request');
+var parseString = require('xml2js').parseString;
 
 var discoverySingleton = (function discovery(){
 
@@ -28,7 +30,7 @@ var discoverySingleton = (function discovery(){
     // Private variables and methods //
     ///////////////////////////////////
     var discPort = 41235;  // Port to send udp messages
-    var notifyPort = 8282; // Default Port for notification
+    var notifyPort = 8181; // Default Port for notification
     var sock = null;
     var serverList = [];
     var searchTarget = 0;
@@ -114,14 +116,9 @@ var discoverySingleton = (function discovery(){
 	return false;
     }
 
-   function emitDevice(socket, event, usn, location){
-	var dev = {
-	    'usn':usn,
-	    'location':location
-	};
-
-	console.log("Emiting : " + JSON.stringify(dev));
-	socket.emit(event, dev);
+   function emitDevice(socket, event, device){
+	console.log("Emiting : " + JSON.stringify(device));
+	socket.emit(event, device);
     }
 
     function emitDeviceList(socket){
@@ -129,10 +126,32 @@ var discoverySingleton = (function discovery(){
 	    for(var ii in serverList){
 		emitDevice(socket,
 			   'device_added', 
-			   serverList[ii].usn, 
-			   serverList[ii].location);
+			   serverList[ii]);
 	    }
 	}
+    }
+
+    // Parse Device Info
+    function parseDeviceInfo(url, io){
+	request(url, function(error, response, body){
+	    parseString(body, function(err, result){
+		var rootDev = result.root.device[0];
+		var dev = {
+		    'deviceType': rootDev.deviceType[0],
+		    'friendlyName': rootDev.friendlyName[0],
+		    'manufacturer': rootDev.manufacturer[0],
+		    'modelDescription': rootDev.modelDescription[0],
+		    'UDN': rootDev.UDN[0],
+		    'location': url,
+		};
+		
+		if(addDevice(dev)){
+		    if(io){
+			emitDevice(io, 'device_added', dev);
+		    }
+		}
+	    });
+	});
     }
 
     //////////////////////////////////////
@@ -143,11 +162,13 @@ var discoverySingleton = (function discovery(){
 	io = io.listen(notifyPort);
 
 	io.sockets.on('connection', function(socket){
-	    if(serverList){
-		//console.log("Emitting on connection");
+	    if(serverList.length){
+		//console.log("Emiting on connection");
 		emitDeviceList(socket);
 	    }
 	});
+	
+	return this;
     }
 
     this.init = function(){
@@ -163,15 +184,7 @@ var discoverySingleton = (function discovery(){
 	    var dev = parseDiscoveryResp(msg.toString());
 
 	    if(dev){
-		if(addDevice(dev)){
-		    if(io && serverList){
-			//console.log("Emitting on device addition");
-			emitDevice(io,
-				   'device_added', 
-				   dev.usn, 
-				   dev.location);
-		    }
-		}
+		parseDeviceInfo(dev.location, io);
 	    }
 	});
 
